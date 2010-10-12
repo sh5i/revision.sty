@@ -1,0 +1,144 @@
+% -*- latex -*-
+\NeedsTeXFormat{pLaTeX2e}[2001/09/04]
+\ProvidesPackage{revision}[2010/09/16, hayashi]
+
+% usage:
+% \usepackage[paper]{revision},
+% \usepackage[cr]{revision}, or
+% \usepackage[letter]{revision}
+
+\DeclareOption{paper}{%
+  \AtEndOfPackage{
+    \RequirePackage[dvips]{color}
+    \RequirePackage{xr}
+  }
+  \def\IfRevision#1{#1}
+
+  \def\Modified#1{{\color{red}#1}}
+  \def\Removed#1{}
+  %\def\revB#1{{\color{blue}#1}}
+  %\def\rev#1{{\color[named]{Purple}#1}}
+  %\def\revC#1{{\color[named]{OliveGreen}#1}}
+
+  \def\SecNumber{%
+    \ifnum\c@subsection>0%
+      \ifnum\c@subsubsection>0%
+        \thesubsubsection%
+      \else%
+        \thesubsection%
+      \fi%
+    \else%
+      \thesection%
+    \fi%
+  }
+
+  \def\SecName{%
+    \ifnum\c@section>0%
+      \ifnum\c@subsection>0%
+        \ifnum\c@subsubsection>0%
+          Section \thesubsubsection%
+        \else%
+          Section \thesubsection%
+        \fi%
+      \else%
+        Section \thesection%
+      \fi%
+    \else%
+      Abstract%
+    \fi%
+  }
+
+  \def\marginparL#1{\marginpar{\begin{flushright}#1\end{flushright}}}
+  \def\marginparR#1{\marginpar{#1}}
+  \def\marginparLR#1{\if@firstcolumn\marginparL{#1}\else\marginparR{#1}\fi}
+  \def\marginparBoth#1{\marginpar{%
+    \begin{minipage}{0.5\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
+    \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
+  }}
+  \def\ShowCommentId#1{\marginparBoth{{\scriptsize\color{black}\fbox{\pageref{comment:#1}}}}}
+
+  \long\def\Revised#1#2{%
+    \@bsphack%
+    \immediate\write\@auxout{\string\newlabel{revised:#1}{{\SecNumber}{\SecName}}}%
+    \@esphack%
+    \ShowCommentId{#1}%
+    {#2}%
+  }
+}
+
+\DeclareOption{cameraready}{%
+  \def\IfRevision#1{}
+
+  \long\def\Revised#1#2{#2}
+  \def\Modified#1{#1}
+  \def\Removed#1{}
+}
+
+
+\DeclareOption{letter}{%
+  \AtEndOfPackage{
+    \RequirePackage[dvips]{color}
+    \RequirePackage{okumacro}
+    \RequirePackage{xr}
+
+    % http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2009-05/msg00262.html
+    \long\def\XR@test#1#2#3#4\XR@{%
+      \ifx#1\newlabel
+        \newlabel{\XR@prefix#2}{#3}%
+      \else%
+        \ifx#1\@input
+          \edef\XR@list{\XR@list#2\relax}%
+        \fi%
+      \fi
+      \ifx\bibcite#1\relax
+        \bibcite{\XR@prefix#2}{#3}%
+      \fi
+      \ifeof\@inputcheck\expandafter\XR@aux
+      \else\expandafter\XR@read\fi%
+    }
+  }
+
+
+  \def\Modified#1{{\color{red}#1}}
+  \def\Removed#1{\Modified{\sout{#1}}}
+  \def\Revised#1#2{#2}
+
+  \newenvironment{COMMENT}[1][]%
+    {~\\
+     \addtocounter{comment}{1}
+     \small
+     \begin{screen}{\bf Comment \arabic{reviewer}-\arabic{comment}:} #1\\}%
+    {\end{screen}}
+  % \Alph{com} : A, B, C...
+
+  \newenvironment{QUOTE}[1]%
+    {\vspace{1em}\small\begin{quote} [#1]\\}%
+    {\end{quote}}
+
+  \newenvironment{QUOTES}[2][-]%
+    {
+      \def\@tmp{\ifx-#1%
+                #2\else#1\fi}
+      \@bsphack\immediate\write\@auxout{\string\newlabel{comment:\@tmp}{{\arabic{reviewer}.\arabic{comment}}{\arabic{reviewer}-\arabic{comment}}}}\@esphack%
+     \begin{QUOTE}{\pageref{revised:#2}}}%
+    {\end{QUOTE}}
+
+  \def\QUOTEREV#1{%
+    \begin{QUOTES}{#1}\input{include/#1.tex}\end{QUOTES}
+  }
+
+  \newcounter{reviewer}
+  \setcounter{reviewer}{1}
+
+  \newcounter{comment}
+  \setcounter{comment}{0}
+
+  \def\NewReviewer{
+    \addtocounter{reviewer}{1}
+    \setcounter{comment}{0}
+    \newpage
+  }
+}
+
+\ExecuteOptions{paper}
+\ProcessOptions
