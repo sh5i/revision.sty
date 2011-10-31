@@ -82,8 +82,8 @@
     \begin{minipage}{0.5\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
     \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
   }}
-%  \def\ShowCommentId#1{\r@marginparBoth{{\small\color{black}\fbox{\pageref{comment:#1}}}}}
-  \def\ShowCommentId#1{\r@marginparR{{\color{black}\fbox{\pageref{comment:#1}}}}}
+  \def\ShowCommentId#1{\r@marginparBoth{{\small\color{black}\fbox{\pageref{comment:#1}}}}}
+%  \def\ShowCommentId#1{\r@marginparR{{\color{black}\fbox{\pageref{comment:#1}}}}}
 
   \long\def\WriteRevision#1#2#3{%
     \@temptokena{#3}%
@@ -129,7 +129,7 @@
     }
   }
 
-  \def\Revised#1#2{#2}
+  \long\def\Revised#1#2{#2}
   \def\Modified#1{{\color{red}#1}}
   \def\Removed#1{\Modified{\sout{#1}}}
 
@@ -185,6 +185,12 @@
     \begin{QUOTE}{\ref{revised:#1}}%
       \pageref{revised:#1}%
     \end{QUOTE}%
+  }
+
+  \def\NOTE#1#2{%
+    {\footnotesize \begin{quote}%
+      [★ #1] #2
+    \end{quote}}
   }
 }
 
