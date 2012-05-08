@@ -32,8 +32,9 @@
 
   \def\Modified#1{{\color{red}#1}}
   %\def\Removed#1{}
+  \def\Added#1{\Modified{#1}}
   \def\Removed#1{\Modified{\sout{#1}}}
-  \def\Replaced#1#2{\Removed{#1}\Modified{#2}}
+  \def\Replaced#1#2{\Removed{#1}\Added{#2}}
 
   %\def\revB#1{{\color{blue}#1}}
   %\def\rev#1{{\color[named]{Purple}#1}}
@@ -82,8 +83,8 @@
     \begin{minipage}{0.5\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
     \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
   }}
-  \def\ShowCommentId#1{\r@marginparBoth{{\small\color{black}\fbox{\pageref{comment:#1}}}}}
-%  \def\ShowCommentId#1{\r@marginparR{{\color{black}\fbox{\pageref{comment:#1}}}}}
+%  \def\ShowCommentId#1{\r@marginparBoth{{\small\color{black}\fbox{\pageref{comment:#1}}}}}
+  \def\ShowCommentId#1{\r@marginparR{{\color{black}\fbox{\pageref{comment:#1}}}}}
 
   \long\def\WriteRevision#1#2#3{%
     \@temptokena{#3}%
@@ -101,6 +102,7 @@
   \def\IfRevision#1{}
   \long\def\Revised#1#2{#2}
   \def\Modified#1{#1}
+  \def\Added#1{#1}
   \def\Removed#1{}
 }
 
@@ -131,6 +133,7 @@
 
   \long\def\Revised#1#2{#2}
   \def\Modified#1{{\color{red}#1}}
+  \def\Added#1{\Modified{#1}}
   \def\Removed#1{\Modified{\sout{#1}}}
 
   % comment counter
