@@ -25,7 +25,8 @@
     \RequirePackage{color}
     \RequirePackage{xr}
     \RequirePackage{xstring}
-    \RequirePackage[normalem]{ulem}
+    %\RequirePackage[normalem]{ulem}
+    \RequirePackage{udline}
   }
   \def\IfRevision#1{#1}
 
@@ -36,8 +37,9 @@
   \def\Added#1{\Modified{#1}}
   \def\Add#1{\Modified{#1}}
   %\def\Removed#1{}
-  \def\Deleted#1{\Modified{\sout{#1}}}
-  \def\Del#1{\Modified{\sout{#1}}}
+%  \def\Deleted#1{\Modified{\sout{#1}}}
+  \def\Deleted#1{\Modified{\Sl{#1}}}
+  \def\Del#1{\Deleted{#1}}
   \def\D#1{\Deleted{#1}}
   \def\Replaced#1#2{\Deleted{#1}\Modified{#2}}
   \def\Rep#1#2{\Replaced{#1}{#2}}
