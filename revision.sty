@@ -115,6 +115,10 @@
     \ShowCommentId{#1}%
     {#2}%
   }
+  \long\def\RevisedNoMark#1#2{% #1:key, #2:contents
+    \WriteRevision{revised:#1}{\r@SecName}{#2}%
+    {#2}%
+  }
   \long\def\Rev#1#2{\Revised{#1}{#2}}
   \long\def\R#1#2{\Revised{#1}{#2}}
 }
@@ -187,7 +191,7 @@
   \newenvironment{Comment}[2][-]%
     {\r@GenerateCommentId{#1}%
      \small%
-     \begin{screen}%
+     ~\\\begin{screen}%
      \textbf{\r@CommentName\r@CommentId\r@Caption{#2}:~}}%
     {\end{screen}}
   % \Alph{com} : A, B, C...
@@ -196,7 +200,7 @@
   \newenvironment{Condition}[2][-]%
     {\r@GenerateCommentId{#1}%
      \small%
-     \begin{screen}%
+     ~\\\begin{screen}%
      \textbf{\r@ConditionName\r@CommentId\r@Caption{#2}:~}}%
     {\end{screen}}
   % \Alph{com} : A, B, C...
