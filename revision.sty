@@ -8,16 +8,16 @@
 % \usepackage[letter]{revision}
 
 \DeclareOption{en}{%
-  \gdef\r@SecNameGen#1{Section~#1}
-  \gdef\r@AbstractName{Abstract}
-  \gdef\r@CommentName{Comment~}
-  \gdef\r@ConditionName{Condition~}
+  \gdef\rev@SecNameGen#1{Section~#1}
+  \gdef\rev@AbstractName{Abstract}
+  \gdef\rev@CommentName{Comment~}
+  \gdef\rev@ConditionName{Condition~}
 }
 \DeclareOption{ja}{%
-  \gdef\r@SecNameGen#1{{#1}節}
-  \gdef\r@AbstractName{概要}
-  \gdef\r@CommentName{コメント}
-  \gdef\r@ConditionName{採録条件}
+  \gdef\rev@SecNameGen#1{{#1}節}
+  \gdef\rev@AbstractName{概要}
+  \gdef\rev@CommentName{コメント}
+  \gdef\rev@ConditionName{採録条件}
 }
 
 \DeclareOption{paper}{%
@@ -30,7 +30,7 @@
   }
   \def\IfRevision#1{#1}
 
-  \def\Modified#1{{\color{red}#1}}
+  \def\Modified#1{{\color{blue}#1}}
   \def\M#1{\Modified{#1}}
   \def\Mod#1{\Modified{#1}}
 
@@ -38,7 +38,8 @@
   \def\Add#1{\Modified{#1}}
   %\def\Removed#1{}
 %  \def\Deleted#1{\Modified{\sout{#1}}}
-  \def\Deleted#1{\Modified{\Sl{#1}}}
+  \def\Red#1{{\color{red}#1}}
+  \def\Deleted#1{\Red{\Sl{#1}}}
   \def\Del#1{\Deleted{#1}}
   \def\D#1{\Deleted{#1}}
   \def\Replaced#1#2{\Deleted{#1}\Modified{#2}}
@@ -50,7 +51,7 @@
 
   % extracting section number
   % BUGGY??
-  \def\r@SecNumber{%
+  \def\rev@SecNumber{%
     \ifnum\c@section>0%
       \ifnum\c@subsection>0%
         \ifnum\c@subsubsection>0%
@@ -67,56 +68,70 @@
   }
 
   % section name (Section 1.1, etc.)
-  \def\r@SecName{%
+  \def\rev@SecName{%
     \ifnum\c@section>0%
       \ifnum\c@subsection>0%
         \ifnum\c@subsubsection>0%
-          \r@SecNameGen{\thesubsubsection}%
+          \rev@SecNameGen{\thesubsubsection}%
         \else%
-          \r@SecNameGen{\thesubsection}%
+          \rev@SecNameGen{\thesubsection}%
         \fi%
       \else%
-        \r@SecNameGen{\thesection}%
+        \rev@SecNameGen{\thesection}%
       \fi%
     \else%
-      \r@AbstractName%
+      \rev@AbstractName%
     \fi%
   }
 
+  % https://oku.edu.mie-u.ac.jp/~okumura/texfaq/qa/14602.html
+  \def\rev@setref#1#2{%
+    \ifx#1\relax%
+      ?%
+    \else%
+      \expandafter#2#1%
+    \fi}
+  \def\rev@ref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@firstoftwo}
+  \def\rev@pageref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@secondoftwo}
+  \long\def\rev@firstoftwo#1#2{#1}
+  \long\def\rev@secondoftwo#1#2{#2}
+
   % floating comment
-  \def\r@marginparL#1{\marginpar{\begin{flushright}#1\end{flushright}}}
-  \def\r@marginparR#1{\marginpar{#1}}
-  \def\r@marginparLR#1{\if@firstcolumn\r@marginparR{#1}\else\r@marginparR{#1}\fi}
-  \def\r@marginparBoth#1{\marginpar{%
+  \def\rev@marginparL#1{\marginpar{\begin{flushright}#1\end{flushright}}}
+  \def\rev@marginparR#1{\marginpar{#1}}
+  \def\rev@marginparLR#1{\if@firstcolumn\rev@marginparR{#1}\else\rev@marginparR{#1}\fi}
+  \def\rev@marginparBoth#1{\marginpar{%
     \begin{minipage}{0.495\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
     \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
   }}
-  \def\CommentIdContent#1{%
-    \edef\r@tmp{\@ifundefined{r@#1}{?}{\ref{#1}}}%
+  \def\rev@CommentIdContent#1{%
+    \edef\rev@tmp{\rev@ref{#1}}%
     \saveexpandmode\expandarg%
-      \StrSubstitute\r@tmp,{\noexpand\\}[\r@tmp]%
+      \StrSubstitute\rev@tmp,{\noexpand\\}[\rev@tmp]%
     \restoreexpandmode%
-    {\small\bf\color{red}\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}%
+    {\small\bf\color{blue}\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}%
       \begin{tabular}{|l|}%
-        \hline
-        \r@tmp \\\hline%
+        \hline%
+        \rev@tmp%
+        \\\hline%
       \end{tabular}}%
   }
-%  \def\ShowCommentId#1{\r@marginparBoth{\CommentIdContent{comment:#1}}}
-  \def\ShowCommentId#1{\r@marginparR{\CommentIdContent{comment:#1}}}
-
-  \long\def\WriteRevision#1#2#3{%
+%  \def\rev@ShowCommentId#1{\rev@marginparBoth{\rev@CommentIdContent{comment:#1}}}
+  \def\rev@ShowCommentId#1{\rev@marginparR{\rev@CommentIdContent{comment:#1}}}
+  
+  \long\def\rev@WriteRevision#1#2#3{%
     \@temptokena{#3}%
     \immediate\write\@auxout{\string\newlabel{#1}{{#2}{\thepage}}}%
     \immediate\write\@auxout{\string\newlabel{content:#1}{{#2}{\the\@temptokena}}}
   }
   \long\def\Revised#1#2{% #1:key, #2:contents
-    \WriteRevision{revised:#1}{\r@SecName}{#2}%
-    \ShowCommentId{#1}%
+    \rev@WriteRevision{revised:#1}{\rev@SecName}{#2}%
+    \rev@ShowCommentId{#1}%
     {#2}%
   }
+  \def\Label#1{\rev@ShowCommentId{#1}}
   \long\def\RevisedNoMark#1#2{% #1:key, #2:contents
-    \WriteRevision{revised:#1}{\r@SecName}{#2}%
+    \rev@WriteRevision{revised:#1}{\rev@SecName}{#2}%
     {#2}%
   }
   \long\def\Rev#1#2{\Revised{#1}{#2}}
@@ -159,49 +174,49 @@
   }
 
   \long\def\Revised#1#2{#2}
-  \long\def\Modified#1{{\color{red}#1}}
+  \long\def\Modified#1{{\color{blue}#1}}
   \long\def\Removed#1{\Modified{\sout{#1}}}
 
   % comment counter
-  \xdef\r@CommentCounter{}
+  \xdef\rev@CommentCounter{}
   \newcounter{comment}
   \setcounter{comment}{0}
 
   % reviewer id
-  \xdef\r@ReviewerId{0}
+  \xdef\rev@ReviewerId{0}
   \def\Reviewer#1{%
-    \xdef\r@ReviewerId{#1}%
+    \xdef\rev@ReviewerId{#1}%
     \setcounter{comment}{0}%
     \clearpage%
   }
 
   % comment id
-  \def\r@CommentId{}
-  \def\r@GenerateCommentId#1{
+  \def\rev@CommentId{}
+  \def\rev@GenerateCommentId#1{
     \addtocounter{comment}{1}%
     \ifx-#1%
-      \xdef\r@CommentId{\r@ReviewerId-\arabic{comment}}
+      \xdef\rev@CommentId{\rev@ReviewerId-\arabic{comment}}
     \else%
-      \xdef\r@CommentId{\r@ReviewerId-#1}
+      \xdef\rev@CommentId{\rev@ReviewerId-#1}
     \fi%
   }
-  \def\r@Caption#1{\@ifmtarg{#1}{}{~[#1]}}
+  \def\rev@Caption#1{\@ifmtarg{#1}{}{~[#1]}}
   
   % comment
   \newenvironment{Comment}[2][-]%
-    {\r@GenerateCommentId{#1}%
+    {\rev@GenerateCommentId{#1}%
      \small%
      ~\\\begin{screen}%
-     \textbf{\r@CommentName\r@CommentId\r@Caption{#2}:~}}%
+     \textbf{\rev@CommentName\rev@CommentId\rev@Caption{#2}:~}}%
     {\end{screen}}
   % \Alph{com} : A, B, C...
 
   % condition
   \newenvironment{Condition}[2][-]%
-    {\r@GenerateCommentId{#1}%
+    {\rev@GenerateCommentId{#1}%
      \small%
      ~\\\begin{screen}%
-     \textbf{\r@ConditionName\r@CommentId\r@Caption{#2}:~}}%
+     \textbf{\rev@ConditionName\rev@CommentId\rev@Caption{#2}:~}}%
     {\end{screen}}
   % \Alph{com} : A, B, C...
 
@@ -211,39 +226,42 @@
     {\vspace{1em}\small\begin{quote} [#1]\\}%
     {\end{quote}}
 
-  \def\r@WriteReference#1#2{% #1:id, #2: content
-    \ifcsname r@comment@#1\endcsname%
-      \edef\r@tmp{\csname r@comment@#1\endcsname}%
-      \g@addto@macro\r@tmp{,#2}%
+  \def\rev@WriteReference#1#2{% #1:id, #2: content
+    \ifcsname rev@comment@#1\endcsname%
+      \edef\rev@tmp{\csname rev@comment@#1\endcsname}%
+      \g@addto@macro\rev@tmp{,#2}%
     \else%
-      \edef\r@tmp{#2}%
+      \edef\rev@tmp{#2}%
     \fi%
-    \expandafter\edef\csname r@comment@#1\endcsname{\r@tmp}%
-    \StrLen{\r@tmp}[\r@tmplen]%
+    \expandafter\edef\csname rev@comment@#1\endcsname{\rev@tmp}%
+    \StrLen{\rev@tmp}[\rev@tmplen]%
     %
     % Skip to write if its size is shorter then previous
-    %    \ifnum\StrLen{\r@tmp}<\StrLen{\pageref{#1}}%
+    %    \ifnum\StrLen{\rev@tmp}<\StrLen{\pageref{#1}}%
     \setrefcountdefault{-1}%
-    \ifnum\getpagerefnumber{#1}>\r@tmplen%
+    \ifnum\getpagerefnumber{#1}>\rev@tmplen%
       \relax%
     \else%
-      \immediate\write\@auxout{\string\newlabel{#1}{{\r@tmp}{\r@tmplen}}}%
+      \immediate\write\@auxout{\string\newlabel{#1}{{\rev@tmp}{\rev@tmplen}}}%
     \fi
   }
   \def\CopyQuotation#1{%
     % write relationship
-    \r@WriteReference{comment:#1}{\r@CommentId}%
-    \begin{Quote}{p.~\pageref{revised:#1}, \ref{content:revised:#1}}%
+    \rev@WriteReference{comment:#1}{\rev@CommentId}%
+    \begin{Quote}{\ref{revised:#1}, p.~\pageref{revised:#1}}%
       \pageref{content:revised:#1}%
     \end{Quote}%
+  }
+  \def\Refers#1{%
+    \rev@WriteReference{comment:#1}{\rev@CommentId}%
   }
 
   % copy-and-paste feature
   \long\def\Copy#1#2{%
-    \expandafter\def\csname r@clipboard@#1\endcsname{#2}%
+    \expandafter\def\csname rev@clipboard@#1\endcsname{#2}%
     #2%
   }
-  \def\Paste#1{\csname r@clipboard@#1\endcsname}
+  \def\Paste#1{\csname rev@clipboard@#1\endcsname}
 
   \def\Note#1#2{%
     {\footnotesize \begin{quote}%
