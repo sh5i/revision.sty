@@ -9,7 +9,7 @@
 
 \DeclareOption{en}{%
   \gdef\rev@SecNameGen#1{Section~#1}
-  \gdef\rev@AbstractName{Abstract}
+  \gdef\rev@AbstractName{Summary}
   \gdef\rev@CommentName{Comment~}
   \gdef\rev@ConditionName{Condition~}
 }
@@ -39,7 +39,7 @@
   %\def\Removed#1{}
 %  \def\Deleted#1{\Modified{\sout{#1}}}
   \def\Red#1{{\color{red}#1}}
-  \def\Deleted#1{\Red{\Sl{#1}}}
+  \def\Deleted#1{\Red{[(Deleted)#1]}}
   \def\Del#1{\Deleted{#1}}
   \def\D#1{\Deleted{#1}}
   \def\Replaced#1#2{\Deleted{#1}\Modified{#2}}
@@ -101,6 +101,7 @@
   \def\rev@marginparR#1{\marginpar{#1}}
   \def\rev@marginparLR#1{\if@firstcolumn\rev@marginparR{#1}\else\rev@marginparR{#1}\fi}
   \def\rev@marginparBoth#1{\marginpar{%
+  	\vspace{5pt}
     \begin{minipage}{0.495\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
     \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
   }}
@@ -116,9 +117,9 @@
         \\\hline%
       \end{tabular}}%
   }
-%  \def\rev@ShowCommentId#1{\rev@marginparBoth{\rev@CommentIdContent{comment:#1}}}
-  \def\rev@ShowCommentId#1{\rev@marginparR{\rev@CommentIdContent{comment:#1}}}
-  
+  \def\rev@ShowCommentId#1{\rev@marginparBoth{\rev@CommentIdContent{comment:#1}}}
+%  \def\rev@ShowCommentId#1{\rev@marginparR{\rev@CommentIdContent{comment:#1}}}
+
   \long\def\rev@WriteRevision#1#2#3{%
     \@temptokena{#3}%
     \immediate\write\@auxout{\string\newlabel{#1}{{#2}{\thepage}}}%
@@ -201,7 +202,7 @@
     \fi%
   }
   \def\rev@Caption#1{\@ifmtarg{#1}{}{~[#1]}}
-  
+
   % comment
   \newenvironment{Comment}[2][-]%
     {\rev@GenerateCommentId{#1}%
