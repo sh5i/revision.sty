@@ -1,274 +1,288 @@
-% -*- latex -*-
-\NeedsTeXFormat{pLaTeX2e}[2001/09/04]
+\NeedsTeXFormat{LaTeX2e}[2001/09/04]
 \ProvidesPackage{revision}[2010/09/16, hayashi]
 
 % usage:
-% \usepackage[paper]{revision},
-% \usepackage[cr]{revision}, or
-% \usepackage[letter]{revision}
+% \usepackage[paper|letter|cameraready]{revision}
 
-\DeclareOption{en}{%
-  \gdef\rev@SecNameGen#1{Section~#1}
-  \gdef\rev@AbstractName{Summary}
-  \gdef\rev@CommentName{Comment~}
-  \gdef\rev@ConditionName{Condition~}
+\AtEndOfPackage{
+  \RequirePackage{xcolor}
+  \RequirePackage{colortbl}
+  \RequirePackage{xr}
+  \RequirePackage{xstring}
+  \RequirePackage[normalem]{ulem} %\RequirePackage{udline}
+  \RequirePackage{ifmtarg}
+  \RequirePackage{refcount}
+  \RequirePackage{xspace}
+  \RequirePackage{marginnote}
+  \RequirePackage{clipboard}
+  \definecolor{Reviewer0}{rgb}{0.8,1.0,1.0}
+  \definecolor{Reviewer1}{rgb}{0.8,1.0,0.8}
+  \definecolor{Reviewer2}{rgb}{1.0,0.8,1.0}
+  \definecolor{Reviewer3}{rgb}{1.0,1.0,0.8}
+  \definecolor{ReviewerX}{rgb}{0.7,0.7,0.7}
+  
+  % \cite on xr
+  % http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2009-05/msg00262.html
+  \long\def\XR@test#1#2#3#4\XR@{%
+    \ifx#1\newlabel
+      \newlabel{\XR@prefix#2}{#3}%
+    \else%
+      \ifx#1\@input
+        \edef\XR@list{\XR@list#2\relax}%
+      \fi%
+    \fi
+    \ifx\bibcite#1\relax
+      \bibcite{\XR@prefix#2}{#3}%
+    \fi
+    \ifeof\@inputcheck\expandafter\XR@aux
+    \else\expandafter\XR@read\fi%
+  }
 }
-\DeclareOption{ja}{%
-  \gdef\rev@SecNameGen#1{{#1}節}
-  \gdef\rev@AbstractName{概要}
-  \gdef\rev@CommentName{コメント}
-  \gdef\rev@ConditionName{採録条件}
+
+% cross-referencing
+% https://www.overleaf.com/learn/how-to/Cross_referencing_with_the_xr_package_in_Overleaf
+\newcommand*{\rev@AddFileDependency}[1]{%
+  \typeout{(#1)}%
+  %\@addtofilelist{#1}%
+  \IfFileExists{#1}{}{\typeout{No file #1.}}%
 }
+\newcommand*{\myexternaldocument}[1]{%
+  \externaldocument{#1}%
+  \rev@AddFileDependency{#1.tex}%
+  \rev@AddFileDependency{#1.aux}%
+}
+
+% basic literal definition
+\gdef\rev@CommentSymbol{Comment }
+\gdef\rev@AnswerSymbol{Answer to }
+
+% basic style definition
+\long\def\rev@HighlightedText#1{{\color{blue}#1}}
+\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
+\def\rev@HorizontalLine{\noindent\textcolor{lightgray}{\rule{\linewidth}{1pt}}}
+\def\rev@CommentBox#1#2{\colorbox{#1}{{\color{white}\textbf{#2}}}}
+\def\rev@TableBox#1#2{{\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}\begin{tabular}{|>{\columncolor{#1}}l|}\hline#2\\\hline\end{tabular}}}
+\def\rev@CommentIdBox#1{%
+  \StrChar{#1}{1}[\rev@tmpreviewerid]%
+  {\begingroup%
+    \small%
+    \bfseries%
+    \color{black}%
+    \colorlet{cv}{Reviewer\rev@tmpreviewerid}%
+    \rev@TableBox{cv}{#1}%
+  \endgroup}%
+}
+%\def\rev@CommentIdBox#1{\fcolorbox{black}{Reviewer0}{#1}}
+
+\def\rev@MarginPar#1{\leavevmode%
+%  \begingroup%
+%  \ifodd\value{page}
+%    \if@firstcolumn\reversemarginpar\fi
+%  \else
+%    \if@firstcolumn\else\reversemarginpar\fi
+%  \fi
+  \marginnote{#1}%
+%  \endgroup%
+}
+
+% aliases
+\long\def\R#1#2{\Revised{#1}{#2}}
+\long\def\A#1{\Added{#1}}
+\long\def\M#1{\Modified{#1}}
+\long\def\D#1{\Deleted{#1}}
+\long\def\Rep#1#2{\Replaced{#1}{#2}}
+\long\def\Added#1{\Modified{#1}}
+\long\def\Removed#1{\Deleted{#1}}
+\long\def\Replaced#1#2{\Deleted{#1}\Modified{#2}}
+
+% Extracts section name (e.g., "Section 1.1")
+% @see https://tex.stackexchange.com/questions/141367/how-can-i-reference-the-current-subsection-number
+\def\rev@SectionName{%
+  \ifnum\c@section=0%
+    Abstract%
+  \else\ifnum\c@subsection=0%
+    Section~\thesection%
+  \else\ifnum\c@subsubsection=0%
+    Section~\thesubsection%
+  \else%
+    Section~\thesubsubsection%
+  \fi\fi\fi%
+}
+
+%-------------------------------------------------------------------
+
+% 1. \rev@WriteRevision{<rid>}{<content>} in paper.tex
+%   - Writes to paper.aux the location as '\newlabel{revised:<rid>}{{<section-info>}{<page-number>}}'
+%   - Writes to paper.aux the content  as '\newlabel{content:<rid>}{{-}{<content>}}'
+\long\def\rev@WriteRevision#1#2{%
+  \immediate\write\@auxout{\string\newlabel{revised:#1}{{\rev@SectionName}{\thepage}}}%
+  \Copy{#1}{#2}
+}
+
+% 2. \rev@WriteReference{<rid>}{<cid>} in letter.tex
+%   - Aggregates the list of revision IDs at \rev@comment@<rid>
+%   - Writes to letter.aux the relationship as '\newlabel{comment:<rid>}{{<cid>...}{<length>}}'
+\def\rev@WriteReference#1#2{%
+  % accumerates comment IDs for the target revision at \rev@comment@<rid>
+  % \edef\rev@comment@revised:<rid>{<cid>,<cid>}
+  \ifcsname rev@comment@#1\endcsname%
+    \edef\rev@tmp{\csname rev@comment@#1\endcsname}%
+    \g@addto@macro\rev@tmp{,#2}%
+  \else%
+    \edef\rev@tmp{#2}%
+  \fi%
+  \expandafter\edef\csname rev@comment@#1\endcsname{\rev@tmp}%
+  %
+  % Writes the list of comment IDs,
+  % but skips to write it if its string length is shorter then the previous
+  \StrLen{\rev@tmp}[\rev@tmplen]%
+  \setrefcountdefault{-1}%
+  \ifnum\getpagerefnumber{comment:#1}>\rev@tmplen%
+    \relax%
+  \else%
+    \immediate\write\@auxout{\string\newlabel{comment:#1}{{\rev@tmp}{\rev@tmplen}}}%
+  \fi
+}
+
+% 3. \rev@CommentIdContent{<rid>} in paper.tex
+%   - Splits the contents of \rev@ref{<rid>}
+%   - Writes to letter.aux the relationship as '\newlabel{comment:<rid>}{{<cid>...}{<length>}}'
+\def\rev@CommentIdContent#1{%
+  \edef\rev@tmp{\rev@ref{comment:#1}}%
+  \begin{minipage}{0.1cm}%
+  \rev@CommentIdContentImpl{\rev@tmp}%
+  \end{minipage}
+}
+\def\rev@CommentIdContentImpl#1{%
+  \IfSubStr{#1}{,}{% multiple
+    \saveexpandmode\expandarg%
+      \StrBefore{#1}{,}[\rev@tmpbefore]%
+      \StrBehind{#1}{,}[\rev@tmpbehind]%
+    \restoreexpandmode%
+    \rev@CommentIdBox{\rev@tmpbefore}\\%
+    \rev@CommentIdContentImpl{\rev@tmpbehind}%
+  }{% single
+    \rev@CommentIdBox{#1}%
+  }%
+}
+
+% Alternatives of \setref, \ref, and \pageref using the namespace r@
+% @see https://oku.edu.mie-u.ac.jp/~okumura/texfaq/qa/14602.html
+\def\rev@setref#1#2{\ifx#1\relax X\else\expandafter#2#1\fi}
+\def\rev@ref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@fst}
+\def\rev@pageref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@snd}
+\long\def\rev@fst#1#2{#1}
+\long\def\rev@snd#1#2{#2}
+
+% floating comment
+
+\def\RRef#1{%
+  \rev@GenerateReferenceId%
+  \rev@WriteReference{#1}{\rev@ReferenceId}%
+  \rev@CommentIdBox{\rev@ReferenceId}%
+}
+\def\RQuote#1{%
+  \rev@GenerateReferenceId%
+  \rev@WriteReference{#1}{\rev@ReferenceId}%
+  \begin{Quote}{\rev@CommentIdBox{\rev@ReferenceId} [\ref{revised:#1}, Page~\pageref{revised:#1}]}%
+    \Paste{#1}%
+  \end{Quote}%
+}
+\def\CopyQuotation#1{\RQuote{#1}}
+
+% copy-and-paste feature
+\long\def\RCopy#1#2{%
+  \expandafter\def\csname rev@clipboard@#1\endcsname{#2}%
+  #2%
+}
+\def\RPaste#1{\csname rev@clipboard@#1\endcsname}
+
+
+
+%%% Comment and Reply feature
+
+% comment/reference counter
+\newcounter{comment}
+\setcounter{comment}{0}
+\newcounter{reference}
+\setcounter{reference}{0}
+
+% reviewer id
+\xdef\rev@ReviewerId{0}
+\def\Reviewer#1{%
+  \xdef\rev@ReviewerId{#1}%
+  \setcounter{comment}{0}%
+}
+
+% comment id
+\def\rev@CommentId{}
+\def\rev@GenerateCommentId#1{
+  \ifx*#1% default
+    \addtocounter{comment}{1}%
+    \xdef\rev@CommentId{\rev@ReviewerId.\arabic{comment}}
+  \else%
+    \xdef\rev@CommentId{\rev@ReviewerId.#1}
+  \fi%
+  \setcounter{reference}{0}%
+}
+
+% reference id
+\def\rev@ReferenceId{}
+\def\rev@GenerateReferenceId{
+  \addtocounter{reference}{1}%
+  \xdef\rev@ReferenceId{\rev@CommentId\alph{reference}}
+}
+
+% comment
+\newcommand{\Comment}[1][*]{%
+  % id generation
+  \rev@GenerateCommentId{#1}%
+  % hr
+  \rev@HorizontalLine
+  \vspace{0em}
+  
+  \noindent
+  \rev@CommentBox{gray}{\rev@CommentSymbol\rev@CommentId}\xspace%
+  \begingroup
+  \itshape % start italic
+  \color{gray}
+}
+\newcommand{\Reply}{%
+  \endgroup % end italic
+  ~ \\
+  \rev@CommentBox{black}{\rev@AnswerSymbol\rev@CommentId}\xspace%
+}
+
+% quote
+\newenvironment{Quote}[1]%
+  {\vspace{1em}\small\begin{quote}#1\\}%
+  {\end{quote}}
+
+% author note
+\def\Note#1#2{{\footnotesize\begin{quote}[** #1] #2\end{quote}}}
 
 \DeclareOption{paper}{%
-  \AtEndOfPackage{
-    \RequirePackage{color}
-    \RequirePackage{xr}
-    \RequirePackage{xstring}
-    %\RequirePackage[normalem]{ulem}
-    \RequirePackage{udline}
+  \def\Label#1{\rev@MarginPar{\rev@CommentIdContent{#1}}}
+  \long\def\Revised#1#2{%
+    \Label{#1}%
+    \rev@WriteRevision{#1}{#2}%
+    %{#2}%
   }
-  \def\IfRevision#1{#1}
-
-  \def\Modified#1{{\color{blue}#1}}
-  \def\M#1{\Modified{#1}}
-  \def\Mod#1{\Modified{#1}}
-
-  \def\Added#1{\Modified{#1}}
-  \def\Add#1{\Modified{#1}}
-  %\def\Removed#1{}
-%  \def\Deleted#1{\Modified{\sout{#1}}}
-  \def\Red#1{{\color{red}#1}}
-  \def\Deleted#1{\Red{[(Deleted)#1]}}
-  \def\Del#1{\Deleted{#1}}
-  \def\D#1{\Deleted{#1}}
-  \def\Replaced#1#2{\Deleted{#1}\Modified{#2}}
-  \def\Rep#1#2{\Replaced{#1}{#2}}
-
-  %\def\revB#1{{\color{blue}#1}}
-  %\def\rev#1{{\color[named]{Purple}#1}}
-  %\def\revC#1{{\color[named]{OliveGreen}#1}}
-
-  % extracting section number
-  % BUGGY??
-  \def\rev@SecNumber{%
-    \ifnum\c@section>0%
-      \ifnum\c@subsection>0%
-        \ifnum\c@subsubsection>0%
-          \thesubsubsection%
-        \else%
-          \thesubsection%
-        \fi%
-      \else%
-        \thesection%
-      \fi%
-    \else%
-      %
-    \fi%
-  }
-
-  % section name (Section 1.1, etc.)
-  \def\rev@SecName{%
-    \ifnum\c@section>0%
-      \ifnum\c@subsection>0%
-        \ifnum\c@subsubsection>0%
-          \rev@SecNameGen{\thesubsubsection}%
-        \else%
-          \rev@SecNameGen{\thesubsection}%
-        \fi%
-      \else%
-        \rev@SecNameGen{\thesection}%
-      \fi%
-    \else%
-      \rev@AbstractName%
-    \fi%
-  }
-
-  % https://oku.edu.mie-u.ac.jp/~okumura/texfaq/qa/14602.html
-  \def\rev@setref#1#2{%
-    \ifx#1\relax%
-      ?%
-    \else%
-      \expandafter#2#1%
-    \fi}
-  \def\rev@ref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@firstoftwo}
-  \def\rev@pageref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@secondoftwo}
-  \long\def\rev@firstoftwo#1#2{#1}
-  \long\def\rev@secondoftwo#1#2{#2}
-
-  % floating comment
-  \def\rev@marginparL#1{\marginpar{\begin{flushright}#1\end{flushright}}}
-  \def\rev@marginparR#1{\marginpar{#1}}
-  \def\rev@marginparLR#1{\if@firstcolumn\rev@marginparR{#1}\else\rev@marginparR{#1}\fi}
-  \def\rev@marginparBoth#1{\marginpar{%
-  	\vspace{5pt}
-    \begin{minipage}{0.495\hsize}\begin{flushleft}#1\end{flushleft}\end{minipage}%
-    \begin{minipage}{0.495\hsize}\begin{flushright}#1\end{flushright}\end{minipage}%
-  }}
-  \def\rev@CommentIdContent#1{%
-    \edef\rev@tmp{\rev@ref{#1}}%
-    \saveexpandmode\expandarg%
-      \StrSubstitute\rev@tmp,{\noexpand\\}[\rev@tmp]%
-    \restoreexpandmode%
-    {\small\bf\color{blue}\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}%
-      \begin{tabular}{|l|}%
-        \hline%
-        \rev@tmp%
-        \\\hline%
-      \end{tabular}}%
-  }
-  \def\rev@ShowCommentId#1{\rev@marginparBoth{\rev@CommentIdContent{comment:#1}}}
-%  \def\rev@ShowCommentId#1{\rev@marginparR{\rev@CommentIdContent{comment:#1}}}
-
-  \long\def\rev@WriteRevision#1#2#3{%
-    \@temptokena{#3}%
-    \immediate\write\@auxout{\string\newlabel{#1}{{#2}{\thepage}}}%
-    \immediate\write\@auxout{\string\newlabel{content:#1}{{#2}{\the\@temptokena}}}
-  }
-  \long\def\Revised#1#2{% #1:key, #2:contents
-    \rev@WriteRevision{revised:#1}{\rev@SecName}{#2}%
-    \rev@ShowCommentId{#1}%
-    {#2}%
-  }
-  \def\Label#1{\rev@ShowCommentId{#1}}
-  \long\def\RevisedNoMark#1#2{% #1:key, #2:contents
-    \rev@WriteRevision{revised:#1}{\rev@SecName}{#2}%
-    {#2}%
-  }
-  \long\def\Rev#1#2{\Revised{#1}{#2}}
-  \long\def\R#1#2{\Revised{#1}{#2}}
+  \long\def\RevisedNoMark#1#2{{#2}\rev@WriteRevision{#1}{#2}}
+  \long\def\Modified#1{\rev@HighlightedText{#1}}
+  \long\def\Deleted#1{\rev@StrikedText{#1}}
 }
-
 \DeclareOption{cameraready}{%
-  \def\IfRevision#1{}
+  \def\Label#1{}
   \long\def\Revised#1#2{#2}
-  \def\Modified#1{#1}
-  \def\Deleted#1{}
+  \long\def\RevisedNoMark#1#2{#2}
+  \long\def\Modified#1{#1}
+  \long\def\Deleted#1{}
 }
-
 \DeclareOption{letter}{%
-  \AtEndOfPackage{
-    \RequirePackage{color}
-    \RequirePackage{okumacro}
-    \RequirePackage{xr}
-    \RequirePackage{ifmtarg}
-    \RequirePackage{xstring}
-    \RequirePackage{refcount}
-    \RequirePackage[normalem]{ulem}
-
-    % http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2009-05/msg00262.html
-    % \cite on xr
-    \long\def\XR@test#1#2#3#4\XR@{%
-      \ifx#1\newlabel
-        \newlabel{\XR@prefix#2}{#3}%
-      \else%
-        \ifx#1\@input
-          \edef\XR@list{\XR@list#2\relax}%
-        \fi%
-      \fi
-      \ifx\bibcite#1\relax
-        \bibcite{\XR@prefix#2}{#3}%
-      \fi
-      \ifeof\@inputcheck\expandafter\XR@aux
-      \else\expandafter\XR@read\fi%
-    }
-  }
-
   \long\def\Revised#1#2{#2}
-  \long\def\Modified#1{{\color{blue}#1}}
-  \long\def\Removed#1{\Modified{\sout{#1}}}
-
-  % comment counter
-  \xdef\rev@CommentCounter{}
-  \newcounter{comment}
-  \setcounter{comment}{0}
-
-  % reviewer id
-  \xdef\rev@ReviewerId{0}
-  \def\Reviewer#1{%
-    \xdef\rev@ReviewerId{#1}%
-    \setcounter{comment}{0}%
-    \clearpage%
-  }
-
-  % comment id
-  \def\rev@CommentId{}
-  \def\rev@GenerateCommentId#1{
-    \addtocounter{comment}{1}%
-    \ifx-#1%
-      \xdef\rev@CommentId{\rev@ReviewerId-\arabic{comment}}
-    \else%
-      \xdef\rev@CommentId{\rev@ReviewerId-#1}
-    \fi%
-  }
-  \def\rev@Caption#1{\@ifmtarg{#1}{}{~[#1]}}
-
-  % comment
-  \newenvironment{Comment}[2][-]%
-    {\rev@GenerateCommentId{#1}%
-     \small%
-     ~\\\begin{screen}%
-     \textbf{\rev@CommentName\rev@CommentId\rev@Caption{#2}:~}}%
-    {\end{screen}}
-  % \Alph{com} : A, B, C...
-
-  % condition
-  \newenvironment{Condition}[2][-]%
-    {\rev@GenerateCommentId{#1}%
-     \small%
-     ~\\\begin{screen}%
-     \textbf{\rev@ConditionName\rev@CommentId\rev@Caption{#2}:~}}%
-    {\end{screen}}
-  % \Alph{com} : A, B, C...
-
-  \def\Caption#1{\textbf{[#1]}~}
-
-  \newenvironment{Quote}[1]%
-    {\vspace{1em}\small\begin{quote} [#1]\\}%
-    {\end{quote}}
-
-  \def\rev@WriteReference#1#2{% #1:id, #2: content
-    \ifcsname rev@comment@#1\endcsname%
-      \edef\rev@tmp{\csname rev@comment@#1\endcsname}%
-      \g@addto@macro\rev@tmp{,#2}%
-    \else%
-      \edef\rev@tmp{#2}%
-    \fi%
-    \expandafter\edef\csname rev@comment@#1\endcsname{\rev@tmp}%
-    \StrLen{\rev@tmp}[\rev@tmplen]%
-    %
-    % Skip to write if its size is shorter then previous
-    %    \ifnum\StrLen{\rev@tmp}<\StrLen{\pageref{#1}}%
-    \setrefcountdefault{-1}%
-    \ifnum\getpagerefnumber{#1}>\rev@tmplen%
-      \relax%
-    \else%
-      \immediate\write\@auxout{\string\newlabel{#1}{{\rev@tmp}{\rev@tmplen}}}%
-    \fi
-  }
-  \def\CopyQuotation#1{%
-    % write relationship
-    \rev@WriteReference{comment:#1}{\rev@CommentId}%
-    \begin{Quote}{\ref{revised:#1}, p.~\pageref{revised:#1}}%
-      \pageref{content:revised:#1}%
-    \end{Quote}%
-  }
-  \def\Refers#1{%
-    \rev@WriteReference{comment:#1}{\rev@CommentId}%
-  }
-
-  % copy-and-paste feature
-  \long\def\Copy#1#2{%
-    \expandafter\def\csname rev@clipboard@#1\endcsname{#2}%
-    #2%
-  }
-  \def\Paste#1{\csname rev@clipboard@#1\endcsname}
-
-  \def\Note#1#2{%
-    {\footnotesize \begin{quote}%
-      [★ #1] #2
-    \end{quote}}%
-  }
+  \long\def\Modified#1{\rev@HighlightedText{#1}}
+  \long\def\Removed#1{\rev@StrikedText{#1}}
 }
 
 \ExecuteOptions{paper}
