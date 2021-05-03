@@ -19,6 +19,10 @@
   \definecolor{Reviewer1}{rgb}{0.8,1.0,0.8}
   \definecolor{Reviewer2}{rgb}{1.0,0.8,1.0}
   \definecolor{Reviewer3}{rgb}{1.0,1.0,0.8}
+  \definecolor{ReviewerM}{rgb}{0.8,1.0,1.0}
+  \definecolor{ReviewerA}{rgb}{0.8,1.0,0.8}
+  \definecolor{ReviewerB}{rgb}{1.0,0.8,1.0}
+  \definecolor{ReviewerC}{rgb}{1.0,1.0,0.8}
   \definecolor{ReviewerX}{rgb}{0.7,0.7,0.7}
   
   % \cite on xr
@@ -74,22 +78,27 @@
 }
 %\def\rev@CommentIdBox#1{\fcolorbox{black}{Reviewer0}{#1}}
 
-\def\rev@MarginPar#1{\leavevmode%
+\def\rev@MarginPar#1{%\leavevmode%
 %  \begingroup%
 %  \ifodd\value{page}
 %    \if@firstcolumn\reversemarginpar\fi
 %  \else
 %    \if@firstcolumn\else\reversemarginpar\fi
 %  \fi
-  \marginnote{#1}%
+%  \marginnote{#1}%
 %  \endgroup%
-}
+\marginpar{%
+  \vspace{5pt}
+  \begin{minipage}{0.49\hsize}\begin{flushleft}#1~~~\end{flushleft}\end{minipage}%
+  \begin{minipage}{0.495\hsize}\begin{flushright}#1~~~~\end{flushright}\end{minipage}%
+}}
 
 % aliases
 \long\def\R#1#2{\Revised{#1}{#2}}
 \long\def\A#1{\Added{#1}}
 \long\def\M#1{\Modified{#1}}
 \long\def\D#1{\Deleted{#1}}
+\long\def\RM#1#2{\Revised{#1}{\M{#2}}}
 \long\def\Rep#1#2{\Replaced{#1}{#2}}
 \long\def\Added#1{\Modified{#1}}
 \long\def\Removed#1{\Deleted{#1}}
