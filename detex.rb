@@ -11,7 +11,7 @@ class String
     gsub(/\\#{name}\{#{P1}\}/, '\k<p1>')
   end
   def peel2(name)
-    gsub(/\\#{name}\{#{P1}\}\{#{P2}\}/, '\k<p2>')
+    gsub(/\\#{name}\{#{P1}\}\s*\{#{P2}\}/, '\k<p2>')
   end
 end
 
@@ -22,6 +22,7 @@ s = s.crop(/D(?:eleted)?/)
 s = s.crop(/Removed/)
 s = s.peel2(/Rep(?:laced)?/)
 s = s.peel2(/R(?:evised)?/).peel2(/R(?:evised)?/) # in case of nesting
+s = s.peel2(/RM/).peel2(/RM/) # in case of nesting
 s = s.crop(/Label/)
 
 # s = s.peel(/underline/)
