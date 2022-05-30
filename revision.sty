@@ -79,15 +79,26 @@
 %\def\rev@CommentIdBox#1{\fcolorbox{black}{Reviewer0}{#1}}
 
 \def\rev@MarginPar#1{\leavevmode%
-%  \begingroup%
-%  \ifodd\value{page}
-%    \if@firstcolumn\reversemarginpar\fi
-%  \else
-%    \if@firstcolumn\else\reversemarginpar\fi
-%  \fi
-  \marginnote{#1~~~~~}%
-%  \endgroup%
+  \begingroup%
+  \ifodd\value{page}%
+    \if@firstcolumn%
+      \rev@MarginParL{#1}
+    \else%
+      \reversemarginpar%
+      \rev@MarginParR{#1}
+    \fi%
+  \else%
+    \if@firstcolumn%
+      \rev@MarginParL{#1}%
+    \else%
+      \reversemarginpar%
+      \rev@MarginParR{#1}%
+    \fi%
+  \fi%
+  \endgroup%
 }
+\def\rev@MarginParL#1{\marginpar{\hspace{-3.3em}#1}}
+\def\rev@MarginParR#1{\marginpar{~~~#1}}
 
 % aliases
 \long\def\R#1#2{\Revised{#1}{#2}}
