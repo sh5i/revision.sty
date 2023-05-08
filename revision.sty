@@ -9,7 +9,9 @@
   \RequirePackage{colortbl}
   \RequirePackage{xr}
   \RequirePackage{xstring}
-  \RequirePackage[normalem]{ulem} %\RequirePackage{udline}
+  %\RequirePackage{ulem}
+  %\RequirePackage{udline}
+  \RequirePackage{uline--}
   \RequirePackage{ifmtarg}
   \RequirePackage{refcount}
   \RequirePackage{xspace}
@@ -62,7 +64,11 @@
 
 % basic style definition
 \long\def\rev@HighlightedText#1{{\color{blue}#1}}
-\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
+%\DeclareRobustCommand{\rev@StrikedText}{\bgroup\markoverwith{\textcolor{red}{\rule[.5ex]{2pt}{0.4pt}}}\ULon}
+%\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
+\long\def\rev@StrikedText#1{{\color{red}\mline{#1}}}
+\newcommand{\add}[1]{\textcolor{blue}{#1}}
+
 \def\rev@HorizontalLine{\noindent\textcolor{lightgray}{\rule{\linewidth}{1pt}}}
 \def\rev@CommentBox#1#2{\colorbox{#1}{{\color{white}\textbf{#2}}}}
 \def\rev@TableBox#1#2{{\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}\begin{tabular}{|>{\columncolor{#1}}l|}\hline#2\\\hline\end{tabular}}}
@@ -80,25 +86,15 @@
 
 \def\rev@MarginPar#1{\leavevmode%
   \begingroup%
-  \ifodd\value{page}%
-    \if@firstcolumn%
-      \rev@MarginParL{#1}
-    \else%
-      \reversemarginpar%
-      \rev@MarginParR{#1}
-    \fi%
+  \if@firstcolumn%
+    %\marginpar[\raggedleft #1]{\raggedright #1}
+    \marginpar{\hspace{-3em}#1}%
   \else%
-    \if@firstcolumn%
-      \rev@MarginParL{#1}%
-    \else%
-      \reversemarginpar%
-      \rev@MarginParR{#1}%
-    \fi%
-  \fi%
+    %\marginpar[\raggedright #1]{\raggedleft #1}
+    \marginpar{#1}%
+  \fi
   \endgroup%
 }
-\def\rev@MarginParL#1{\marginpar{\hspace{-3.3em}#1}}
-\def\rev@MarginParR#1{\marginpar{~~~#1}}
 
 % aliases
 \long\def\R#1#2{\Revised{#1}{#2}}
