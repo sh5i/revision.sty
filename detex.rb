@@ -2,6 +2,7 @@
 
 P1 = /(?<p1> (?: [^\{\}]+ | \{ \g<p1> \} )*)/x
 P2 = /(?<p2> (?: [^\{\}]+ | \{ \g<p2> \} )*)/x
+COM = /(%[^\n]*\n[ \t]*)*/x
 
 class String
   def crop(name)
@@ -11,7 +12,7 @@ class String
     gsub(/\\#{name}\{#{P1}\}/, '\k<p1>')
   end
   def peel2(name)
-    gsub(/\\#{name}\{#{P1}\}\s*\{#{P2}\}/, '\k<p2>')
+    gsub(/\\#{name}\{#{P1}\}#{COM}\{#{P2}\}/, '\k<p2>')
   end
 end
 
