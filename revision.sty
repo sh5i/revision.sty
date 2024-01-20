@@ -67,7 +67,6 @@
 %\DeclareRobustCommand{\rev@StrikedText}{\bgroup\markoverwith{\textcolor{red}{\rule[.5ex]{2pt}{0.4pt}}}\ULon}
 %\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
 \long\def\rev@StrikedText#1{{\color{red}\mline{#1}}}
-\newcommand{\add}[1]{\textcolor{blue}{#1}}
 
 \def\rev@HorizontalLine{\noindent\textcolor{lightgray}{\rule{\linewidth}{1pt}}}
 \def\rev@CommentBox#1#2{\colorbox{#1}{{\color{white}\textbf{#2}}}}
@@ -86,15 +85,25 @@
 
 \def\rev@MarginPar#1{\leavevmode%
   \begingroup%
-  \if@firstcolumn%
-    %\marginpar[\raggedleft #1]{\raggedright #1}
-    \marginpar{\hspace{-3em}#1}%
+  \ifodd\value{page}%
+    \if@firstcolumn%
+      \rev@MarginParL{#1}
+    \else%
+      \reversemarginpar%
+      \rev@MarginParR{#1}
+    \fi%
   \else%
-    %\marginpar[\raggedright #1]{\raggedleft #1}
-    \marginpar{#1}%
-  \fi
+    \if@firstcolumn%
+      \rev@MarginParL{#1}%
+    \else%
+      \reversemarginpar%
+      \rev@MarginParR{#1}%
+    \fi%
+  \fi%
   \endgroup%
 }
+\def\rev@MarginParL#1{\marginpar{\hspace{3.3em}#1}}
+\def\rev@MarginParR#1{\marginpar{#1}}
 
 % aliases
 \long\def\R#1#2{\Revised{#1}{#2}}
