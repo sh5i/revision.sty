@@ -9,9 +9,7 @@
   \RequirePackage{colortbl}
   \RequirePackage{xr}
   \RequirePackage{xstring}
-  %\RequirePackage{ulem}
-  %\RequirePackage{udline}
-  \RequirePackage{uline--}
+  \RequirePackage[normalem]{ulem} %\RequirePackage{udline}
   \RequirePackage{ifmtarg}
   \RequirePackage{refcount}
   \RequirePackage{xspace}
@@ -49,7 +47,7 @@
 % https://www.overleaf.com/learn/how-to/Cross_referencing_with_the_xr_package_in_Overleaf
 \newcommand*{\rev@AddFileDependency}[1]{%
   \typeout{(#1)}%
-  %\@addtofilelist{#1}%
+  \@addtofilelist{#1}%
   \IfFileExists{#1}{}{\typeout{No file #1.}}%
 }
 \newcommand*{\myexternaldocument}[1]{%
@@ -64,10 +62,7 @@
 
 % basic style definition
 \long\def\rev@HighlightedText#1{{\color{blue}#1}}
-%\DeclareRobustCommand{\rev@StrikedText}{\bgroup\markoverwith{\textcolor{red}{\rule[.5ex]{2pt}{0.4pt}}}\ULon}
-%\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
-\long\def\rev@StrikedText#1{{\color{red}\mline{#1}}}
-
+\long\def\rev@StrikedText#1{{\color{red}\sout{#1}}}
 \def\rev@HorizontalLine{\noindent\textcolor{lightgray}{\rule{\linewidth}{1pt}}}
 \def\rev@CommentBox#1#2{\colorbox{#1}{{\color{white}\textbf{#2}}}}
 \def\rev@TableBox#1#2{{\tabcolsep=1.5pt\renewcommand{\arraystretch}{0.8}\begin{tabular}{|>{\columncolor{#1}}l|}\hline#2\\\hline\end{tabular}}}
@@ -84,26 +79,17 @@
 %\def\rev@CommentIdBox#1{\fcolorbox{black}{Reviewer0}{#1}}
 
 \def\rev@MarginPar#1{\leavevmode%
-  \begingroup%
-  \ifodd\value{page}%
-    \if@firstcolumn%
-      \rev@MarginParL{#1}
-    \else%
-      \reversemarginpar%
-      \rev@MarginParR{#1}
-    \fi%
-  \else%
-    \if@firstcolumn%
-      \rev@MarginParL{#1}%
-    \else%
-      \reversemarginpar%
-      \rev@MarginParR{#1}%
-    \fi%
-  \fi%
-  \endgroup%
+%  \begingroup%
+%  \ifodd\value{page}
+%    \if@firstcolumn\reversemarginpar\fi
+%  \else
+%    \if@firstcolumn\else\reversemarginpar\fi
+%  \fi
+  \marginnote{#1~~~~~~~~~}%
+%  \endgroup%
 }
-\def\rev@MarginParL#1{\marginpar{\hspace{3.3em}#1}}
-\def\rev@MarginParR#1{\marginpar{#1}}
+\setlength{\marginparwidth}{2cm}
+\setlength{\marginparsep}{1mm}
 
 % aliases
 \long\def\R#1#2{\Revised{#1}{#2}}
@@ -223,35 +209,35 @@
 %%% Comment and Reply feature
 
 % comment/reference counter
-\newcounter{comment}
-\setcounter{comment}{0}
-\newcounter{reference}
-\setcounter{reference}{0}
+\newcounter{RevComment}
+\setcounter{RevComment}{0}
+\newcounter{RevReference}
+\setcounter{RevReference}{0}
 
 % reviewer id
 \xdef\rev@ReviewerId{0}
 \def\Reviewer#1{%
   \xdef\rev@ReviewerId{#1}%
-  \setcounter{comment}{0}%
+  \setcounter{RevComment}{0}%
 }
 
 % comment id
 \def\rev@CommentId{}
 \def\rev@GenerateCommentId#1{
   \ifx*#1% default
-    \addtocounter{comment}{1}%
-    \xdef\rev@CommentId{\rev@ReviewerId.\arabic{comment}}
+    \addtocounter{RevComment}{1}%
+    \xdef\rev@CommentId{\rev@ReviewerId.\arabic{RevComment}}
   \else%
     \xdef\rev@CommentId{\rev@ReviewerId.#1}
   \fi%
-  \setcounter{reference}{0}%
+  \setcounter{RevReference}{0}%
 }
 
 % reference id
 \def\rev@ReferenceId{}
 \def\rev@GenerateReferenceId{
-  \addtocounter{reference}{1}%
-  \xdef\rev@ReferenceId{\rev@CommentId\alph{reference}}
+  \addtocounter{RevReference}{1}%
+  \xdef\rev@ReferenceId{\rev@CommentId\alph{RevReference}}
 }
 
 % comment
@@ -266,7 +252,8 @@
   \rev@CommentBox{gray}{\rev@CommentSymbol\rev@CommentId}\xspace%
   \begingroup
   \itshape % start italic
-  %\color{gray}
+  \small
+  \color{gray}
 }
 \newcommand{\Reply}{%
   \endgroup % end italic
