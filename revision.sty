@@ -189,6 +189,10 @@
   \rev@WriteReference{#1}{\rev@ReferenceId}%
   \rev@CommentIdBox{\rev@ReferenceId}%
 }
+\def\RTouch#1{%
+  \rev@GenerateReferenceId%
+  \rev@WriteReference{#1}{\rev@ReferenceId}%
+}
 \def\RQuote#1{%
   \rev@GenerateReferenceId%
   \rev@WriteReference{#1}{\rev@ReferenceId}%
