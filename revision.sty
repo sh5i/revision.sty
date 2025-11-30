@@ -13,6 +13,7 @@
   \RequirePackage{ifmtarg}
   \RequirePackage{refcount}
   \RequirePackage{xspace}
+  \RequirePackage{alphalph}
   \RequirePackage{marginnote}
   \RequirePackage{clipboard}
   \definecolor{Reviewer0}{rgb}{0.8,1.0,1.0}
@@ -237,7 +238,7 @@
 \def\rev@ReferenceId{}
 \def\rev@GenerateReferenceId{
   \addtocounter{RevReference}{1}%
-  \xdef\rev@ReferenceId{\rev@CommentId\alph{RevReference}}
+  \xdef\rev@ReferenceId{\rev@CommentId\alphalph{\value{RevReference}}}
 }
 
 % comment
