@@ -135,7 +135,10 @@
 %   - Writes to paper.aux the location as '\newlabel{revised:<rid>}{{<section-info>}{<page-number>}}'
 %   - Writes to paper.aux the content  as '\newlabel{content:<rid>}{{-}{<content>}}'
 \long\def\rev@WriteRevision#1#2{%
-  \immediate\write\@auxout{\string\newlabel{revised:#1}{{\rev@SectionName}{\thepage}}}%
+  % \protected@write defers the \write to shipout so that \thepage is
+  % correct even when the paragraph is moved to the following page
+  % (\immediate\write expands \thepage too early).
+  \protected@write\@auxout{}{\string\newlabel{revised:#1}{{\rev@SectionName}{\thepage}}}%
   \Copy{#1}{#2}%
 }
 
