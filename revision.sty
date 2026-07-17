@@ -73,7 +73,19 @@
     \small%
     \bfseries%
     \color{black}%
-    \colorlet{cv}{Reviewer\rev@tmpreviewerid}%
+    % falls back to ReviewerX (gray) when Reviewer<id> is not defined,
+    % e.g., for the fourth reviewer and beyond; warns once per id
+    \@ifundefined{\string\color@Reviewer\rev@tmpreviewerid}{%
+      \@ifundefined{rev@colorwarned@\rev@tmpreviewerid}{%
+        \PackageWarning{revision}{Color 'Reviewer\rev@tmpreviewerid' is not
+          defined; falling back to ReviewerX.  Define it with
+          \string\definecolor{Reviewer\rev@tmpreviewerid}{rgb}{...}}%
+        \expandafter\gdef\csname rev@colorwarned@\rev@tmpreviewerid\endcsname{}%
+      }{}%
+      \colorlet{cv}{ReviewerX}%
+    }{%
+      \colorlet{cv}{Reviewer\rev@tmpreviewerid}%
+    }%
     \rev@TableBox{cv}{#1}%
   \endgroup}%
 }
