@@ -2,14 +2,19 @@
 \ProvidesPackage{revision}[2010/09/16, hayashi]
 
 % usage:
-% \usepackage[paper|letter|cameraready]{revision}
+% \usepackage[paper|letter|cameraready][,ja]{revision}
+
+\newif\ifrev@ja
 
 \AtEndOfPackage{
   \RequirePackage{xcolor}
   \RequirePackage{colortbl}
   \RequirePackage{xr}
   \RequirePackage{xstring}
-  \RequirePackage[normalem]{ulem}
+  % ulem cannot break a struck-out Japanese passage across lines: it looks
+  % for spaces, which Japanese does not have.  uline-- works in both
+  % scripts, but redefines much more, so it is only loaded when asked for.
+  \ifrev@ja\RequirePackage{uline--}\else\RequirePackage[normalem]{ulem}\fi
   \RequirePackage{refcount}
   \RequirePackage{xspace}
   \RequirePackage{alphalph}
@@ -40,9 +45,13 @@
 }
 
 % basic literal definition
-\gdef\rev@CommentSymbol{Comment }
-\gdef\rev@AnswerSymbol{Answer to }
-\gdef\rev@PageSymbol{Page~}
+% Each takes what it labels as its argument, so that a translation may
+% put the word after the number (see the ja option).
+\gdef\rev@CommentText#1{Comment #1}
+\gdef\rev@AnswerText#1{Answer to #1}
+\gdef\rev@PageText#1{Page~#1}
+\gdef\rev@AbstractText{Abstract}
+\gdef\rev@SectionText#1{Section~#1}
 
 % basic style definition
 \long\def\rev@HighlightedText#1{{\color{blue}#1}}
@@ -100,15 +109,18 @@
 
 % Extracts section name (e.g., "Section 1.1")
 % @see https://tex.stackexchange.com/questions/141367/how-can-i-reference-the-current-subsection-number
+% \relax terminates each number: without it TeX scans on for more digits
+% and expands the following text, which swallows \thesection whenever the
+% translation starts with the number rather than with a word.
 \def\rev@SectionName{%
-  \ifnum\c@section=0%
-    Abstract%
-  \else\ifnum\c@subsection=0%
-    Section~\thesection%
-  \else\ifnum\c@subsubsection=0%
-    Section~\thesubsection%
+  \ifnum\c@section=0\relax
+    \rev@AbstractText%
+  \else\ifnum\c@subsection=0\relax
+    \rev@SectionText{\thesection}%
+  \else\ifnum\c@subsubsection=0\relax
+    \rev@SectionText{\thesubsection}%
   \else%
-    Section~\thesubsubsection%
+    \rev@SectionText{\thesubsubsection}%
   \fi\fi\fi%
 }
 
@@ -187,7 +199,7 @@
 % floating comment
 
 % Location of a revision, e.g. 'Section 2, Page 3'
-\def\rev@LocationText#1{\ref{revised:#1}, \rev@PageSymbol\pageref{revised:#1}}
+\def\rev@LocationText#1{\ref{revised:#1}, \rev@PageText{\pageref{revised:#1}}}
 
 % \RRef[full]{<rid>} appends the location to the reference id
 \newcommand{\RRef}[2][]{%
@@ -267,7 +279,7 @@
   \vspace{0em}
   
   \noindent
-  \rev@CommentBox{gray}{\rev@CommentSymbol\rev@CommentId}\xspace%
+  \rev@CommentBox{gray}{\rev@CommentText{\rev@CommentId}}\xspace%
   \begingroup
   \itshape % start italic
   \small
@@ -276,7 +288,7 @@
 \newcommand{\Reply}{%
   \endgroup % end italic
   ~ \\
-  \rev@CommentBox{black}{\rev@AnswerSymbol\rev@CommentId}\xspace%
+  \rev@CommentBox{black}{\rev@AnswerText{\rev@CommentId}}\xspace%
 }
 
 % quote
@@ -314,5 +326,29 @@
   \long\def\Deleted#1{\rev@StrikedText{#1}}
 }
 
+% Japanese: strike out with uline--, which breaks lines in both scripts
+% (\mline's own color= option only reaches some of the lines, so the color
+% is applied from the outside, exactly as with \sout), and translate the
+% literals.  Orthogonal to paper/letter/cameraready: [paper,ja]
+\DeclareOption{ja}{%
+  \rev@jatrue
+  \long\gdef\rev@StrikedText#1{{\color{red}\mline{#1}}}%
+  \gdef\rev@CommentText#1{コメント#1}%
+  \gdef\rev@AnswerText#1{#1への回答}%
+  \gdef\rev@PageText#1{#1ページ}%
+  \gdef\rev@AbstractText{概要}%
+  \gdef\rev@SectionText#1{#1節}%
+}
+
 \ExecuteOptions{paper}
 \ProcessOptions
+
+% Forgetting 'ja' leaves \Deleted unable to break lines, which is easy to
+% miss among the overfull warnings it causes.  \kanjiskip exists in the
+% pTeX family (and in LuaTeX-ja, where lua-ul would be the answer instead).
+\@ifundefined{kanjiskip}{}{%
+  \ifrev@ja\else
+    \PackageWarning{revision}{Japanese engine detected without the 'ja'
+      option; struck-out Japanese text will not break across lines}%
+  \fi
+}

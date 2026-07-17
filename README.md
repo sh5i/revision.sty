@@ -84,6 +84,12 @@ Unresolved references appear as `X` badges or `??`; they disappear once the buil
 
 Switching `paper` to `cameraready` is the only change needed after acceptance.
 
+For a Japanese manuscript, add `ja` to both documents (`[paper,ja]`, `[letter,ja]`).
+It is orthogonal to the three options above and does two things: it strikes deleted text out with `uline--` instead of `ulem`, and it translates the literals (`コメント 1.1`, `1.1 への回答`, `1 節, 1 ページ`).
+The switch matters because `ulem` looks for spaces to break a line at, so a struck-out Japanese passage would run off the page instead of wrapping; `uline--` handles both scripts.
+It is not loaded by default because it is not on CTAN (a copy is bundled here) and it redefines a great deal.
+If you forget `ja` on a Japanese engine, the package says so in the log.
+
 ### Marking changes (manuscript)
 
 | Command | Short form | Meaning | `paper` rendering |
@@ -192,4 +198,6 @@ Undefined colors fall back to gray with a one-time warning in the log.
 |---|---|
 | `revision.sty` | the package |
 | `paper.tex`, `rebuttal.tex` | minimal working example (also used for testing) |
+| `paper-ja.tex`, `rebuttal-ja.tex` | the same in Japanese, for the `ja` option (build with `platex`) |
+| `uline--.sty` | bundled dependency of the `ja` option (not on CTAN) |
 | `detex.rb` | strips revision markup from sources |
