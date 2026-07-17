@@ -25,23 +25,6 @@
   \definecolor{Reviewer3}{rgb}{1.0,1.0,0.8}
   \definecolor{ReviewerC}{rgb}{1.0,1.0,0.8}
   \definecolor{ReviewerX}{rgb}{0.7,0.7,0.7}
-  
-  % \cite on xr
-  % http://newsgroups.derkeiler.com/Archive/Comp/comp.text.tex/2009-05/msg00262.html
-  \long\def\XR@test#1#2#3#4\XR@{%
-    \ifx#1\newlabel
-      \newlabel{\XR@prefix#2}{#3}%
-    \else%
-      \ifx#1\@input
-        \edef\XR@list{\XR@list#2\relax}%
-      \fi%
-    \fi
-    \ifx\bibcite#1\relax
-      \bibcite{\XR@prefix#2}{#3}%
-    \fi
-    \ifeof\@inputcheck\expandafter\XR@aux
-    \else\expandafter\XR@read\fi%
-  }
 }
 
 % cross-referencing
@@ -191,11 +174,14 @@
 
 % Alternatives of \setref, \ref, and \pageref using the namespace r@
 % @see https://oku.edu.mie-u.ac.jp/~okumura/texfaq/qa/14602.html
-\def\rev@setref#1#2{\ifx#1\relax X\else\expandafter#2#1\fi}
+% Labels imported by xr carry five fields ({ref}{page}{}{}{url});
+% locally written ones carry two.  The trailing \rev@nil-delimited
+% argument absorbs whatever follows the first two fields in either case.
+\def\rev@setref#1#2{\ifx#1\relax X\else\expandafter#2#1\rev@nil\fi}
 \def\rev@ref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@fst}
 \def\rev@pageref#1{\expandafter\rev@setref\csname r@#1\endcsname\rev@snd}
-\long\def\rev@fst#1#2{#1}
-\long\def\rev@snd#1#2{#2}
+\long\def\rev@fst#1#2#3\rev@nil{#1}
+\long\def\rev@snd#1#2#3\rev@nil{#2}
 
 % floating comment
 
