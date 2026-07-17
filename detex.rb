@@ -2,28 +2,37 @@
 
 P1 = /(?<p1> (?: [^\{\}]+ | \{ \g<p1> \} )*)/x
 P2 = /(?<p2> (?: [^\{\}]+ | \{ \g<p2> \} )*)/x
-COM = /(%[^\n]*\n[ \t]*)*/x
+SEP = /(?: \s | %[^\n]*\n )*/x # what TeX skips between two arguments
 
+# Every rule strictly shrinks the string, so repeating it until nothing
+# matches terminates, and peels nesting of any depth.
 class String
   def crop(name)
-    gsub(/\\#{name}\{(#{P1})\}/, '')
+    s = dup
+    nil while s.gsub!(/\\#{name}\{#{P1}\}/, '')
+    s
   end
   def peel(name)
-    gsub(/\\#{name}\{#{P1}\}/, '\k<p1>')
+    s = dup
+    nil while s.gsub!(/\\#{name}\{#{P1}\}/, '\k<p1>')
+    s
   end
   def peel2(name)
-    gsub(/\\#{name}\{#{P1}\}#{COM}\{#{P2}\}/, '\k<p2>')
+    s = dup
+    nil while s.gsub!(/\\#{name}\{#{P1}\}#{SEP}\{#{P2}\}/, '\k<p2>')
+    s
   end
 end
 
 s = ARGF.read
 s = s.peel(/A(?:dded)?/)
-s = s.peel(/M(?:odified)?/).peel(/M(?:odified)?/) # in case of nesting
+s = s.peel(/M(?:odified)?/)
 s = s.crop(/D(?:eleted)?/)
 s = s.crop(/Removed/)
 s = s.peel2(/Rep(?:laced)?/)
-s = s.peel2(/R(?:evised)?/).peel2(/R(?:evised)?/) # in case of nesting
-s = s.peel2(/RM/).peel2(/RM/) # in case of nesting
+s = s.peel2(/RevisedNoMark/)
+s = s.peel2(/R(?:evised)?/)
+s = s.peel2(/RM/)
 s = s.crop(/Label/)
 
 # s = s.peel(/underline/)

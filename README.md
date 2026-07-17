@@ -171,7 +171,9 @@ Undefined colors fall back to gray with a one-time warning in the log.
   ruby detex.rb paper.tex > paper-clean.tex
   ```
 
-  Current limitations: nesting deeper than two levels of the same command and `\RevisedNoMark` are not yet handled: skim the output.
+  The script yields the same text as the `cameraready` option does, at any nesting depth.
+  It is regex-based rather than a TeX parser, though, so skim the output if the source does anything unusual with braces or verbatim text.
+  Note that `\Note` annotations are stripped by neither the script nor `cameraready`.
 
 ## Tips and caveats
 
