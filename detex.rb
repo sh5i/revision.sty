@@ -24,7 +24,9 @@ class String
   end
 end
 
-s = ARGF.read
+# sources are UTF-8; without this the locale decides, and a bare LANG
+# (as in a Makefile or on CI) makes Ruby read them as US-ASCII and fail
+s = ARGF.set_encoding(Encoding::UTF_8).read
 s = s.peel(/A(?:dded)?/)
 s = s.peel(/M(?:odified)?/)
 s = s.crop(/D(?:eleted)?/)
