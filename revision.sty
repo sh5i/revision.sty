@@ -43,6 +43,7 @@
 % basic literal definition
 \gdef\rev@CommentSymbol{Comment }
 \gdef\rev@AnswerSymbol{Answer to }
+\gdef\rev@PageSymbol{Page~}
 
 % basic style definition
 \long\def\rev@HighlightedText#1{{\color{blue}#1}}
@@ -186,10 +187,19 @@
 
 % floating comment
 
-\def\RRef#1{%
+% Location of a revision, e.g. 'Section 2, Page 3'
+\def\rev@LocationText#1{\ref{revised:#1}, \rev@PageSymbol\pageref{revised:#1}}
+
+% \RRef[full]{<rid>} appends the location to the reference id
+\newcommand{\RRef}[2][]{%
   \rev@GenerateReferenceId%
-  \rev@WriteReference{#1}{\rev@ReferenceId}%
+  \rev@WriteReference{#2}{\rev@ReferenceId}%
   \rev@CommentIdBox{\rev@ReferenceId}%
+  \IfStrEq{#1}{}{}{%
+    \IfStrEq{#1}{full}{~(\rev@LocationText{#2})}{%
+      \PackageWarning{revision}{Unknown option '#1' for \string\RRef; ignored}%
+    }%
+  }%
 }
 \def\RTouch#1{%
   \rev@GenerateReferenceId%
@@ -198,7 +208,7 @@
 \def\RQuote#1{%
   \rev@GenerateReferenceId%
   \rev@WriteReference{#1}{\rev@ReferenceId}%
-  \begin{Quote}{\rev@CommentIdBox{\rev@ReferenceId} [\ref{revised:#1}, Page~\pageref{revised:#1}]}%
+  \begin{Quote}{\rev@CommentIdBox{\rev@ReferenceId} [\rev@LocationText{#1}]}%
     \Paste{#1}%
   \end{Quote}%
 }
