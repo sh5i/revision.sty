@@ -294,9 +294,13 @@
   \long\def\Deleted#1{}
 }
 \DeclareOption{letter}{%
+  % defines the same command set as the paper/cameraready options so that
+  % \D, \Rep, \Replaced, etc. also work inside the letter
+  \def\Label#1{}
   \long\def\Revised#1#2{#2}
+  \long\def\RevisedNoMark#1#2{#2}
   \long\def\Modified#1{\rev@HighlightedText{#1}}
-  \long\def\Removed#1{\rev@StrikedText{#1}}
+  \long\def\Deleted#1{\rev@StrikedText{#1}}
 }
 
 \ExecuteOptions{paper}
