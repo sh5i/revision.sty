@@ -124,7 +124,7 @@
 %   - Writes to paper.aux the content  as '\newlabel{content:<rid>}{{-}{<content>}}'
 \long\def\rev@WriteRevision#1#2{%
   \immediate\write\@auxout{\string\newlabel{revised:#1}{{\rev@SectionName}{\thepage}}}%
-  \Copy{#1}{#2}
+  \Copy{#1}{#2}%
 }
 
 % 2. \rev@WriteReference{<rid>}{<cid>} in letter.tex
@@ -149,7 +149,7 @@
     \relax%
   \else%
     \immediate\write\@auxout{\string\newlabel{comment:#1}{{\rev@tmp}{\rev@tmplen}}}%
-  \fi
+  \fi%
 }
 
 % 3. \rev@CommentIdContent{<rid>} in paper.tex
@@ -228,21 +228,21 @@
 
 % comment id
 \def\rev@CommentId{}
-\def\rev@GenerateCommentId#1{
+\def\rev@GenerateCommentId#1{%
   \ifx*#1% default
     \addtocounter{RevComment}{1}%
-    \xdef\rev@CommentId{\rev@ReviewerId.\arabic{RevComment}}
+    \xdef\rev@CommentId{\rev@ReviewerId.\arabic{RevComment}}%
   \else%
-    \xdef\rev@CommentId{\rev@ReviewerId.#1}
+    \xdef\rev@CommentId{\rev@ReviewerId.#1}%
   \fi%
   \setcounter{RevReference}{0}%
 }
 
 % reference id
 \def\rev@ReferenceId{}
-\def\rev@GenerateReferenceId{
+\def\rev@GenerateReferenceId{%
   \addtocounter{RevReference}{1}%
-  \xdef\rev@ReferenceId{\rev@CommentId\alphalph{\value{RevReference}}}
+  \xdef\rev@ReferenceId{\rev@CommentId\alphalph{\value{RevReference}}}%
 }
 
 % comment
