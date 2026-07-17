@@ -129,18 +129,18 @@
 %   - Aggregates the list of revision IDs at \rev@comment@<rid>
 %   - Writes to letter.aux the relationship as '\newlabel{comment:<rid>}{{<cid>...}{<length>}}'
 \def\rev@WriteReference#1#2{%
-  % accumerates comment IDs for the target revision at \rev@comment@<rid>
-  % \edef\rev@comment@revised:<rid>{<cid>,<cid>}
+  % accumulates comment IDs for the target revision at \rev@comment@<rid>
+  % \xdef\rev@comment@<rid>{<cid>,<cid>}
+  % (globally, so that accumulation survives \RRef etc. used inside a group)
   \ifcsname rev@comment@#1\endcsname%
-    \edef\rev@tmp{\csname rev@comment@#1\endcsname}%
-    \g@addto@macro\rev@tmp{,#2}%
+    \expandafter\xdef\csname rev@comment@#1\endcsname{\csname rev@comment@#1\endcsname,#2}%
   \else%
-    \edef\rev@tmp{#2}%
+    \expandafter\xdef\csname rev@comment@#1\endcsname{#2}%
   \fi%
-  \expandafter\edef\csname rev@comment@#1\endcsname{\rev@tmp}%
+  \edef\rev@tmp{\csname rev@comment@#1\endcsname}%
   %
   % Writes the list of comment IDs,
-  % but skips to write it if its string length is shorter then the previous
+  % but skips to write it if its string length is shorter than the previous
   \StrLen{\rev@tmp}[\rev@tmplen]%
   \setrefcountdefault{-1}%
   \ifnum\getpagerefnumber{comment:#1}>\rev@tmplen%
@@ -205,7 +205,9 @@
 
 % copy-and-paste feature
 \long\def\RCopy#1#2{%
-  \expandafter\def\csname rev@clipboard@#1\endcsname{#2}%
+  % \long: the stored text may contain \par; \gdef: the definition must
+  % survive the end of a surrounding group/environment
+  \expandafter\long\expandafter\gdef\csname rev@clipboard@#1\endcsname{#2}%
   #2%
 }
 \def\RPaste#1{\csname rev@clipboard@#1\endcsname}
