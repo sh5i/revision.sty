@@ -11,7 +11,7 @@ The quotation is always taken from the current manuscript source, so it never go
 ## Requirements
 
 A reasonably recent TeX distribution. The package loads:
-`xcolor`, `colortbl`, `xr` (v6.00+ recommended), `xstring`, `ulem`, `ifmtarg`, `refcount`, `xspace`, `alphalph`, `marginnote`, and `clipboard`.
+`xcolor`, `colortbl`, `xr` (v6.00+ recommended), `xstring`, `ulem`, `refcount`, `xspace`, `alphalph`, `marginnote`, and `clipboard`.
 All of them ship with TeX Live.
 
 ## Quick start
