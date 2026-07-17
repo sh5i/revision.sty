@@ -116,7 +116,8 @@
 
 % 1. \rev@WriteRevision{<rid>}{<content>} in paper.tex
 %   - Writes to paper.aux the location as '\newlabel{revised:<rid>}{{<section-info>}{<page-number>}}'
-%   - Writes to paper.aux the content  as '\newlabel{content:<rid>}{{-}{<content>}}'
+%   - Stores <content> in the clipboard for \RQuote
+%   - Typesets <content>, since \Copy does: callers must not typeset it again
 \long\def\rev@WriteRevision#1#2{%
   % \protected@write defers the \write to shipout so that \thepage is
   % correct even when the paragraph is moved to the following page
@@ -282,9 +283,8 @@
   \long\def\Revised#1#2{%
     \Label{#1}%
     \rev@WriteRevision{#1}{#2}%
-    %{#2}%
   }
-  \long\def\RevisedNoMark#1#2{{#2}\rev@WriteRevision{#1}{#2}}
+  \long\def\RevisedNoMark#1#2{\rev@WriteRevision{#1}{#2}}
   \long\def\Modified#1{\rev@HighlightedText{#1}}
   \long\def\Deleted#1{\rev@StrikedText{#1}}
 }
