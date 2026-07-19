@@ -220,6 +220,10 @@
   \rev@GenerateReferenceId%
   \rev@WriteReference{#1}{\rev@ReferenceId}%
   \begin{Quote}{\rev@CommentIdBox{\rev@ReferenceId} [\rev@LocationText{#1}]}%
+    % The quoted text is a copy of the paper's, so any \label in it would
+    % clash with the same label imported from the paper by xr.  Suppress
+    % it here (\ref/\pageref still resolve through the imported labels).
+    \let\label\@gobble%
     \Paste{#1}%
   \end{Quote}%
 }
