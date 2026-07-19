@@ -236,7 +236,9 @@
   \expandafter\long\expandafter\gdef\csname rev@clipboard@#1\endcsname{#2}%
   #2%
 }
-\def\RPaste#1{\csname rev@clipboard@#1\endcsname}
+% The text was already typeset (with its \label) by \RCopy, so suppress
+% \label here to avoid defining the same label twice in one document.
+\def\RPaste#1{{\let\label\@gobble\csname rev@clipboard@#1\endcsname}}
 
 
 
