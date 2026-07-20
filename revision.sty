@@ -220,25 +220,30 @@
   \rev@GenerateReferenceId%
   \rev@WriteReference{#1}{\rev@ReferenceId}%
   \begin{Quote}{\rev@CommentIdBox{\rev@ReferenceId} [\rev@LocationText{#1}]}%
-    % The quoted text is a copy of the paper's, so any \label in it would
-    % clash with the same label imported from the paper by xr.  Suppress
-    % it here (\ref/\pageref still resolve through the imported labels).
-    \let\label\@gobble%
+    \rev@NoLabel%
     \Paste{#1}%
   \end{Quote}%
 }
 \def\CopyQuotation#1{\RQuote{#1}}
 
+% Text that repeats text typeset elsewhere must not define its \label
+% again.  Use before re-typesetting, inside a group (\ref and \pageref
+% still resolve, through the original label).
+\def\rev@NoLabel{\let\label\@gobble}
+
 % copy-and-paste feature
+% \rev@CopyBody typesets the first occurrence: in the paper that occurrence
+% owns the label, but in the letter the paper owns every label, so even the
+% first occurrence must not define one (see the letter option).
+\long\def\rev@CopyBody#1{#1}
 \long\def\RCopy#1#2{%
   % \long: the stored text may contain \par; \gdef: the definition must
   % survive the end of a surrounding group/environment
   \expandafter\long\expandafter\gdef\csname rev@clipboard@#1\endcsname{#2}%
-  #2%
+  \rev@CopyBody{#2}%
 }
-% The text was already typeset (with its \label) by \RCopy, so suppress
-% \label here to avoid defining the same label twice in one document.
-\def\RPaste#1{{\let\label\@gobble\csname rev@clipboard@#1\endcsname}}
+% always a repeat of what \RCopy already typeset
+\def\RPaste#1{{\rev@NoLabel\csname rev@clipboard@#1\endcsname}}
 
 
 
@@ -323,6 +328,9 @@
   \long\def\Deleted#1{}
 }
 \DeclareOption{letter}{%
+  % Every label belongs to the paper and is imported here by xr, so text
+  % copied from it must not define one even at its first occurrence.
+  \long\def\rev@CopyBody#1{{\rev@NoLabel#1}}%
   % defines the same command set as the paper/cameraready options so that
   % \D, \Rep, \Replaced, etc. also work inside the letter
   \def\Label#1{}
