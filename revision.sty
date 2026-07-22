@@ -226,10 +226,15 @@
 }
 \def\CopyQuotation#1{\RQuote{#1}}
 
-% Text that repeats text typeset elsewhere must not define its \label
-% again.  Use before re-typesetting, inside a group (\ref and \pageref
-% still resolve, through the original label).
-\def\rev@NoLabel{\let\label\@gobble}
+% Text that repeats text typeset elsewhere must not write to the .aux
+% again: its \label would clash with the original, which xr imports into
+% this document.  Rather than neutralise \label (which amsmath revives on
+% floats and tabulars, via \let\label\ltx@label in \@arrayparboxrestore),
+% cut the shared channel every \label/\index/\addcontentsline writes
+% through.  \ref and \pageref still resolve, through the original label.
+% Use before re-typesetting, inside a group.
+\long\def\rev@gobblethree#1#2#3{}
+\def\rev@NoLabel{\let\protected@write\rev@gobblethree}
 
 % copy-and-paste feature
 % \rev@CopyBody typesets the first occurrence: in the paper that occurrence
